@@ -18,13 +18,13 @@ public class HeroService {
     }
 
     public List<Hero> isActiveHeros() {
-        return heroRepository.getHeros().stream().filter(Hero::isActive).toList();
+        return heroRepository.getHeros().stream().filter(Hero::getIsActive).toList();
     }
 
     public List<Hero> isInActiveHeros() {
         List<Hero> inactiveHeroes = new ArrayList<>();
         for (Hero hero : heroRepository.getHeros()) {
-            if (!hero.isActive()) {
+            if (!hero.getIsActive()) {
                 inactiveHeroes.add(hero);
             }
         }
@@ -73,7 +73,10 @@ public class HeroService {
         if (toggleHero == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
         }
-        toggleHero.setActive(!toggleHero.isActive());
+        toggleHero.setIsActive(!toggleHero.getIsActive());
+        System.out.println("MAP value:  " + heroRepository.getHerosFromMap().get(id).getIsActive());
+        System.out.println("LIST value: " + heroRepository.getHeros().stream().filter(h -> h.getId().equals(id))
+                .findFirst().get().getIsActive());
         return toggleHero;
     }
 
@@ -100,14 +103,14 @@ public class HeroService {
         if (isActiveHeros().contains(heroToDelete)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete an active hero");
         }
-        heroRepository.removeHeroFromBothStructures(heroToDelete);  // ✅ removes from both
+        heroRepository.removeHeroFromBothStructures(heroToDelete);
         return heroRepository.getHeros();
     }
 
     public List<Hero> deleteAllHeroes() {
         List<Hero> herosList = heroRepository.getHeros();
         for (Hero hero : herosList) {
-            if (!hero.isActive()) {
+            if (!hero.getIsActive()) {
                 heroRepository.removeHeroFromBothStructures(hero);
                 return herosList;
             }

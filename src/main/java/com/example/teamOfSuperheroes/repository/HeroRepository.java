@@ -2,7 +2,6 @@ package com.example.teamOfSuperheroes.repository;
 import com.example.teamOfSuperheroes.model.Hero;
 import org.springframework.stereotype.Repository;
 import java.util.*;
-import static javax.swing.UIManager.put;
 
 @Repository
 public class HeroRepository {
