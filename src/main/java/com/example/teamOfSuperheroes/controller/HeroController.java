@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,10 +82,33 @@ public class HeroController {
         return deleteHero;
     }
 
-    // Remove all benched (inactive) heroes at once
     @DeleteMapping("DELETE/heroes")
     public List<Hero> deleteAllHeroes() {
         List<Hero> deleteAllHeroes = heroService.deleteAllHeroes();
         return deleteAllHeroes;
+    }
+    @GetMapping("GET /heroes/strongest")
+    public Hero getStrongestHeroes() {
+        Hero getStrongestHero = heroService.getStrongestHero();
+        return getStrongestHero;
+    }
+
+    @GetMapping("GET /heroes/weakest")
+    public Hero getWeakestHeroes() {
+        Hero getWeakestHero = heroService.getWeakestHero();
+        return getWeakestHero;
+    }
+
+    @GetMapping("GET /her   oes/sorted")
+    public List<Hero> getSortedHeroes() {
+        List<Hero> getSortedHeroes = heroService.getSortedHeroes();
+        return getSortedHeroes;
+    }
+
+    //14
+    @GetMapping("GET/heroes/search")
+    public List<Hero> searchHeroes(@RequestParam String power) {
+        List<Hero> searchHeroes = heroService.searchHeroes(power);
+        return searchHeroes;
     }
 }

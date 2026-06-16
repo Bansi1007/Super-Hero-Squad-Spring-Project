@@ -113,7 +113,40 @@ public class HeroService {
         for (Hero hero : herosList) {
             if (!hero.isActive()) {
                 herosList.remove(hero);
+                herosFromMap.remove(hero.getId());
                 return herosList;
+            }
+        }
+        return null;
+    }
+
+    public Hero getStrongestHero() {
+        List<Hero> herosList = heroRepository.getHeros();
+        Hero strongestHero = herosList.stream().max(Comparator.comparing(Hero::getLevel)).orElse(null);
+        return strongestHero;
+    }
+
+    public Hero getWeakestHero() {
+        List<Hero> herosList = heroRepository.getHeros();
+        Hero WeakestHero = herosList.stream().min(Comparator.comparing(Hero::getLevel)).orElse(null);
+        return WeakestHero;
+    }
+
+    public List<Hero> getSortedHeroes() {
+        List<Hero>heroList = heroRepository.getHeros();
+        List<Hero> SortedHeroes = heroList.stream().sorted(Comparator.comparing(Hero::getLevel,Comparator.reverseOrder())).toList();
+        return SortedHeroes;
+    }
+
+    public List<Hero> searchHeroes(String power) {
+        List<Hero> searchHeroes = heroRepository.getHeros();
+        List<Hero> havingPower = new ArrayList<>();
+        if (searchHeroes != null) {
+            for (Hero hero : searchHeroes) {
+                if (hero.getPower().contains(power.toLowerCase(Locale.ROOT))) {
+                    havingPower.add(hero);
+                    return havingPower;
+                }
             }
         }
         return null;
