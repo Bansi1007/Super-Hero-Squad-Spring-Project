@@ -1,11 +1,15 @@
 package com.example.teamOfSuperheroes.service;
+
 import com.example.teamOfSuperheroes.model.Hero;
 import com.example.teamOfSuperheroes.repository.HeroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class HeroService {
@@ -148,5 +152,78 @@ public class HeroService {
             }
         }
         return null;
+    }
+
+    public List<Hero> getLevelRangeHeroes(int min, int max) {
+        List<Hero> levelRangeHeroes = heroRepository.getHeros();
+        if (levelRangeHeroes == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
+        }
+        return levelRangeHeroes.stream().filter(hero -> hero.getLevel() >= min && hero.getLevel() <= max).collect(Collectors.toList());
+    }
+
+
+    public String getHeroesCount() {
+        int totalHerosCount = heroRepository.getHeros().size();
+        int activeHero = isActiveHeros().size();
+        int benched = isInActiveHeros().size();
+
+        return "Total Heroes-----" + totalHerosCount + "   Active Heroes-----" + activeHero + "    Benched Heroes--" + benched;
+    }
+
+    //17
+    public double getHeroesAverageLevel() {
+        List<Hero> totalHerosCount = heroRepository.getHeros();
+        double average = totalHerosCount.stream().mapToInt(hero -> hero.getLevel()).average().orElse(0.0);
+        return average;
+    }
+
+    public List<Hero> bulkHeroes(List<Hero> hero) {
+        List<Hero> newHeroes = new ArrayList<>();
+        newHeroes.addAll(hero);
+        for (Hero hero1 : newHeroes) {
+            HeroRepository.addHeroToBothStructures(hero1);
+        }
+        return newHeroes;
+    }
+
+    public List<String> getHeroesNames() {
+        List<Hero> heroesList = heroRepository.getHeros();
+        List<String> heroesNames = new ArrayList<>();
+        for (Hero hero : heroesList) {
+            heroesNames.add(hero.getName());
+        }
+
+        return heroesNames;
+    }
+
+    public Hero reNameHero(UUID id, String newName) {
+        Map<UUID, Hero> heroesFromMap = heroRepository.getHerosFromMap();
+        Hero currentHero = heroesFromMap.get(id);
+        if (currentHero != null) {
+            currentHero.setName(newName);
+            heroesFromMap.put(id, currentHero);
+            return currentHero;
+        }
+        return null;
+
+    }
+
+    public List<UUID> getHeroesIds() {
+        Map<UUID, Hero> heroesFromMap = heroRepository.getHerosFromMap();
+        List<UUID> heroesIds = heroesFromMap.keySet().stream().collect(Collectors.toList());
+        return heroesIds;
+    }
+
+    public Boolean existsHero(UUID id) {
+        Map<UUID, Hero> heroesFromMap = heroRepository.getHerosFromMap();
+        Boolean heroesIds = heroesFromMap.containsKey(id);
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
+        }
+        if (heroesIds) {
+            return true;
+        }
+        return false;
     }
 }

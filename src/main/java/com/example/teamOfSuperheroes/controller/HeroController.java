@@ -131,10 +131,66 @@ public class HeroController {
         return getSortedHeroes;
     }
 
-    //14
+
     @GetMapping("/heroes/search")
     public List<Hero> searchHeroes(@RequestParam String power) {
         List<Hero> searchHeroes = heroService.searchHeroes(power);
         return searchHeroes;
+    }
+
+    @GetMapping("/heroes/level-range")
+    public List<Hero> getLevelRangeHeroes(@RequestParam int min, @RequestParam int max) {
+        List<Hero> getLevelRangeHeroes = heroService.getLevelRangeHeroes(min, max);
+        return getLevelRangeHeroes;
+    }
+
+    //	Return total heroes, and how many are active vs benched
+    @GetMapping("/heroes/count")
+    public String getHeroesCount() {
+        String heroCount = heroService.getHeroesCount();
+        return heroCount;
+    }
+
+    @GetMapping("/heroes/average-level")
+    public double getHeroesAverageLevel() {
+        double avgLevel = heroService.getHeroesAverageLevel();
+        return avgLevel;
+    }
+
+    @PostMapping("/heroes/bulk")
+    public List<Hero> bulkHeroes(@RequestBody List<Hero> hero) {
+        List<Hero> bulkHeroes = heroService.bulkHeroes(hero);
+        return bulkHeroes;
+    }
+
+    @GetMapping("/heroes/names")
+    public List<String> getHeroesNames() {
+        List<String> heroeNames = heroService.getHeroesNames();
+        return heroeNames;
+    }
+
+    @PutMapping("/heroes/{id}/rename")
+    public ResponseEntity<Hero> reNameHero(@PathVariable UUID id, @RequestParam String newName) {
+        Hero renameHero = heroService.reNameHero(id, newName);
+        if (renameHero != null) {
+            return new ResponseEntity<>(renameHero, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    //Return just a list of all hero ids
+    @GetMapping("/heroes/ids")
+    public List<UUID> getHeroesIds() {
+        List<UUID> ids = heroService.getHeroesIds();
+        return ids;
+    }
+
+    @GetMapping("/heroes/exists/{id}")
+    public ResponseEntity<Boolean> existsHero(@PathVariable UUID id) {
+        Boolean existsHero = heroService.existsHero(id);
+        if (id == null || existsHero == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(existsHero, HttpStatus.OK);
     }
 }
