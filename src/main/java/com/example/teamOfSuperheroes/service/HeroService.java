@@ -1,12 +1,10 @@
 package com.example.teamOfSuperheroes.service;
-
 import com.example.teamOfSuperheroes.model.Hero;
 import com.example.teamOfSuperheroes.repository.HeroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.*;
 
 @Service
@@ -20,13 +18,13 @@ public class HeroService {
     }
 
     public List<Hero> isActiveHeros() {
-        return heroRepository.getHeros().stream().filter(Hero::isActive).toList();
+        return heroRepository.getHeros().stream().filter(Hero::getIsActive).toList();
     }
 
     public List<Hero> isInActiveHeros() {
         List<Hero> inactiveHeroes = new ArrayList<>();
         for (Hero hero : heroRepository.getHeros()) {
-            if (!hero.isActive()) {
+            if (!hero.getIsActive()) {
                 inactiveHeroes.add(hero);
             }
         }
@@ -71,49 +69,49 @@ public class HeroService {
     }
 
     public Hero toggleHero(UUID id) {
-        Map<UUID, Hero> herosFromMap = heroRepository.getHerosFromMap();
-        Hero toggleHero = herosFromMap.get(id);
-        if (toggleHero != null) {
-            if (!toggleHero.isActive()) {
-                toggleHero.setActive(true);
-                return toggleHero;
-            } else {
-                toggleHero.setActive(false);
-                return toggleHero;
-            }
+        Hero toggleHero = heroRepository.getHerosFromMap().get(id);
+        if (toggleHero == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
         }
-        return null;
+        toggleHero.setIsActive(!toggleHero.getIsActive());
+        System.out.println("MAP value:  " + heroRepository.getHerosFromMap().get(id).getIsActive());
+        System.out.println("LIST value: " + heroRepository.getHeros().stream().filter(h -> h.getId().equals(id))
+                .findFirst().get().getIsActive());
+        return toggleHero;
     }
 
     public Hero levelUpHero(UUID id) {
-        Map<UUID, Hero> herosFromMap = heroRepository.getHerosFromMap();
-        Hero levelUpHero = herosFromMap.get(id);
-        if (levelUpHero != null && levelUpHero.getLevel() < 100) {
-            levelUpHero.setLevel(levelUpHero.getLevel() + 1);
-            return levelUpHero;
+        Hero levelUpHero = heroRepository.getHerosFromMap().get(id);
+        if (levelUpHero == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
         }
-        return null;
+        if (levelUpHero.getLevel() >= 100) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Level Exceeded");
+        }
+        levelUpHero.setLevel(levelUpHero.getLevel() + 1);
+        return levelUpHero;
     }
 
-    public String deleteHero(UUID id) {
-        Map<UUID, Hero> herosFromMap = heroRepository.getHerosFromMap();
-        List<Hero> herosList = heroRepository.getHeros();
-        Hero deleteHero = herosFromMap.get(id);
-        if (deleteHero != null && !isActiveHeros().contains(deleteHero)) {
-            herosList.remove(id);
-            herosList.removeIf(hero -> hero.getId().equals(id));
-            return "remove---" + deleteHero.getName();
+    public List<Hero> deleteHero(UUID id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id is null");
         }
-        return null;
+        Hero heroToDelete = heroRepository.getHerosFromMap().get(id);
+        if (heroToDelete == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id is not valid");
+        }
+        if (isActiveHeros().contains(heroToDelete)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete an active hero");
+        }
+        heroRepository.removeHeroFromBothStructures(heroToDelete);
+        return heroRepository.getHeros();
     }
 
     public List<Hero> deleteAllHeroes() {
-        Map<UUID, Hero> herosFromMap = heroRepository.getHerosFromMap();
         List<Hero> herosList = heroRepository.getHeros();
         for (Hero hero : herosList) {
-            if (!hero.isActive()) {
-                herosList.remove(hero);
-                herosFromMap.remove(hero.getId());
+            if (!hero.getIsActive()) {
+                heroRepository.removeHeroFromBothStructures(hero);
                 return herosList;
             }
         }
@@ -133,8 +131,8 @@ public class HeroService {
     }
 
     public List<Hero> getSortedHeroes() {
-        List<Hero>heroList = heroRepository.getHeros();
-        List<Hero> SortedHeroes = heroList.stream().sorted(Comparator.comparing(Hero::getLevel,Comparator.reverseOrder())).toList();
+        List<Hero> heroList = heroRepository.getHeros();
+        List<Hero> SortedHeroes = heroList.stream().sorted(Comparator.comparing(Hero::getLevel, Comparator.reverseOrder())).toList();
         return SortedHeroes;
     }
 

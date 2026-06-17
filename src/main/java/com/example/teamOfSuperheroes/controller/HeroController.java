@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,22 +18,22 @@ public class HeroController {
     @Autowired
     HeroService heroService;
 
-    @GetMapping("/GET/heroes")
+    @GetMapping("/heroes")
     public List<Hero> getHeroes() {
         return heroService.getHeroes();
     }
 
-    @GetMapping("GET/heroes/active")
+    @GetMapping("/heroes/active")
     public List<Hero> getActiveHeroes() {
         return heroService.isActiveHeros();
     }
 
-    @GetMapping("GET/heroes/benched")
+    @GetMapping("/heroes/benched")
     public List<Hero> getInActiveHeros() {
         return heroService.isInActiveHeros();
     }
 
-    @GetMapping("GET/heroes/{id}")
+    @GetMapping("/heroes/{id}")
     public ResponseEntity<Hero> getHero(@PathVariable UUID id) {
         var hero = heroService.getHerosByID(id);
         if (hero != null) {
@@ -42,71 +43,96 @@ public class HeroController {
         }
     }
 
-    @GetMapping("GET/heroes/by-name/{name}")
-    public Hero getHeroByName(@PathVariable String name) {
+    @GetMapping("/heroes/by-name/{name}")
+    public ResponseEntity<Hero> getHeroByName(@PathVariable String name) {
         var heroByName = heroService.getHerosByName(name);
         if (heroByName != null) {
-            return heroByName;
+            return new ResponseEntity<>(heroByName, HttpStatus.FOUND);
         } else {
-            return null;
+            return new ResponseEntity<Hero>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PostMapping("POST/heroes")
+    @PostMapping("/heroes")
     public ResponseEntity<Hero> addNewHero(@RequestBody Hero hero) {
         Hero addNewHero = heroService.addNewHero(hero);
         return new ResponseEntity<>(addNewHero, HttpStatus.CREATED);
     }
 
-    @PutMapping("PUT/heroes/{id}")
-    public Hero updateHero(@PathVariable UUID id, @RequestBody Hero hero) {
+    @PutMapping("/heroes/{id}")
+    public ResponseEntity<Hero> updateHero(@PathVariable UUID id, @RequestBody Hero hero) {
         Hero currentHero = heroService.updateHero(id, hero);
-        return currentHero;
+        if (currentHero != null) {
+            return new ResponseEntity<>(currentHero, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    @PatchMapping("PATCH/heroes/{id}/toggle")
+    @PatchMapping("/heroes/{id}/toggle")
     public ResponseEntity<Hero> toggleHero(@PathVariable UUID id) {
         Hero toggleHero = heroService.toggleHero(id);
-        return new ResponseEntity<>(toggleHero, HttpStatus.OK);
+        if (toggleHero != null) {
+            return new ResponseEntity<>(toggleHero, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
     }
 
-    @PatchMapping("PATCH /heroes/{id}/level-up")
-    public Hero levelUpHero(@PathVariable UUID id) {
+    @PatchMapping("/heroes/{id}/level-up")
+    public ResponseEntity<Hero> levelUpHero(@PathVariable UUID id) {
         Hero levelUpHero = heroService.levelUpHero(id);
-        return levelUpHero;
+        if (levelUpHero != null) {
+            return new ResponseEntity<>(levelUpHero, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    @DeleteMapping("DELETE/heroes/{id}")
-    public String deleteHero(@PathVariable UUID id) {
-        String deleteHero = heroService.deleteHero(id);
-        return deleteHero;
+    @DeleteMapping("/heroes/{id}")
+    public ResponseEntity<?> deleteHero(@PathVariable UUID id) {
+        try {
+            List<Hero> updatedList = heroService.deleteHero(id);
+            if (updatedList == null) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body("Hero ID does not exist");
+            }
+            return ResponseEntity.ok(updatedList);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity
+                    .status(e.getStatusCode())
+                    .body(e.getReason());
+        }
     }
 
-    @DeleteMapping("DELETE/heroes")
+    @DeleteMapping("/heroes")
     public List<Hero> deleteAllHeroes() {
         List<Hero> deleteAllHeroes = heroService.deleteAllHeroes();
         return deleteAllHeroes;
     }
-    @GetMapping("GET /heroes/strongest")
+
+    @GetMapping("/heroes/strongest")
     public Hero getStrongestHeroes() {
         Hero getStrongestHero = heroService.getStrongestHero();
         return getStrongestHero;
     }
 
-    @GetMapping("GET /heroes/weakest")
+    @GetMapping("/heroes/weakest")
     public Hero getWeakestHeroes() {
         Hero getWeakestHero = heroService.getWeakestHero();
         return getWeakestHero;
     }
 
-    @GetMapping("GET /her   oes/sorted")
+    @GetMapping("/heroes/sorted")
     public List<Hero> getSortedHeroes() {
         List<Hero> getSortedHeroes = heroService.getSortedHeroes();
         return getSortedHeroes;
     }
 
     //14
-    @GetMapping("GET/heroes/search")
+    @GetMapping("/heroes/search")
     public List<Hero> searchHeroes(@RequestParam String power) {
         List<Hero> searchHeroes = heroService.searchHeroes(power);
         return searchHeroes;

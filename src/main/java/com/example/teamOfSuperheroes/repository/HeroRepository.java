@@ -1,11 +1,7 @@
 package com.example.teamOfSuperheroes.repository;
-
 import com.example.teamOfSuperheroes.model.Hero;
 import org.springframework.stereotype.Repository;
-
 import java.util.*;
-
-import static javax.swing.UIManager.put;
 
 @Repository
 public class HeroRepository {
@@ -16,12 +12,7 @@ public class HeroRepository {
         addHeroToBothStructures(new Hero("Iron Man", "Energy blasts", 85, true));
         addHeroToBothStructures(new Hero("Spider-Man", "Web-slinging", 60, true));
         addHeroToBothStructures(new Hero("Hulk", "Super strength", 95, false));
-    }
 
-    static {
-        put(heroListDb.get(0).getId(), heroListDb.get(0));
-        put(heroListDb.get(1).getId(), heroListDb.get(1));
-        put(heroListDb.get(2).getId(), heroListDb.get(2));
     }
 
     public static void addHeroToBothStructures(Hero hero) {
@@ -37,6 +28,9 @@ public class HeroRepository {
         return heroMapDb;
     }
 
-
+    public void removeHeroFromBothStructures(Hero hero) {
+        heroListDb.remove(hero);
+        heroMapDb.remove(hero.getId());
+    }
 }
 
