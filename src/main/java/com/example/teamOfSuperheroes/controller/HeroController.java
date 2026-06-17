@@ -1,10 +1,15 @@
 package com.example.teamOfSuperheroes.controller;
 
+import ch.qos.logback.core.util.StringUtil;
 import com.example.teamOfSuperheroes.model.Hero;
+import com.example.teamOfSuperheroes.model.HeroRequest;
 import com.example.teamOfSuperheroes.service.HeroService;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -44,12 +49,14 @@ public class HeroController {
     }
 
     @GetMapping("/heroes/by-name/{name}")
-    public ResponseEntity<Hero> getHeroByName(@PathVariable String name) {
-        var heroByName = heroService.getHerosByName(name);
+    public ResponseEntity<?> getHeroByName(@PathVariable String name) {
+        var heroByName = heroService.getHerosByName(name.trim());
         if (heroByName != null) {
-            return new ResponseEntity<>(heroByName, HttpStatus.FOUND);
+            return ResponseEntity.ok(heroByName);
         } else {
-            return new ResponseEntity<Hero>(HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("No hero found with name: " + name.trim());
         }
     }
 
@@ -131,11 +138,14 @@ public class HeroController {
         return getSortedHeroes;
     }
 
-
     @GetMapping("/heroes/search")
-    public List<Hero> searchHeroes(@RequestParam String power) {
-        List<Hero> searchHeroes = heroService.searchHeroes(power);
-        return searchHeroes;
+    public ResponseEntity<?> searchHeroes(@RequestParam String power) {
+        try {
+            List<Hero> searchHeroes = heroService.searchHeroes(power);
+            return ResponseEntity.ok(searchHeroes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/heroes/level-range")
@@ -144,7 +154,6 @@ public class HeroController {
         return getLevelRangeHeroes;
     }
 
-    //	Return total heroes, and how many are active vs benched
     @GetMapping("/heroes/count")
     public String getHeroesCount() {
         String heroCount = heroService.getHeroesCount();
@@ -158,27 +167,29 @@ public class HeroController {
     }
 
     @PostMapping("/heroes/bulk")
-    public List<Hero> bulkHeroes(@RequestBody List<Hero> hero) {
-        List<Hero> bulkHeroes = heroService.bulkHeroes(hero);
-        return bulkHeroes;
+    public List<Hero> bulkHeroes(@RequestBody List<HeroRequest> requests) {
+        return heroService.bulkHeroes(requests);
     }
 
     @GetMapping("/heroes/names")
     public List<String> getHeroesNames() {
-        List<String> heroeNames = heroService.getHeroesNames();
-        return heroeNames;
+        List<String> heroNames = heroService.getHeroesNames();
+        return heroNames;
     }
 
     @PutMapping("/heroes/{id}/rename")
-    public ResponseEntity<Hero> reNameHero(@PathVariable UUID id, @RequestParam String newName) {
-        Hero renameHero = heroService.reNameHero(id, newName);
-        if (renameHero != null) {
-            return new ResponseEntity<>(renameHero, HttpStatus.OK);
+    public ResponseEntity<?> reNameHero(@PathVariable UUID id, @RequestParam String newName) {
+        try {
+            Hero renameHero = heroService.reNameHero(id, newName);
+            if (renameHero == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(renameHero);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    //Return just a list of all hero ids
     @GetMapping("/heroes/ids")
     public List<UUID> getHeroesIds() {
         List<UUID> ids = heroService.getHeroesIds();
@@ -188,9 +199,6 @@ public class HeroController {
     @GetMapping("/heroes/exists/{id}")
     public ResponseEntity<Boolean> existsHero(@PathVariable UUID id) {
         Boolean existsHero = heroService.existsHero(id);
-        if (id == null || existsHero == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         return new ResponseEntity<>(existsHero, HttpStatus.OK);
     }
 }

@@ -27,4 +27,11 @@ public class Hero {
         this.isActive = isActive;
     }
 
+    public Hero(HeroRequest request){
+        this.id = UUID.randomUUID();
+        this.name = request.getName();
+        this.power = request.getPower();
+        this.level = request.getLevel();
+        this.isActive = request.getIsActive();
+    }
 }

@@ -1,11 +1,12 @@
 package com.example.teamOfSuperheroes.service;
 
 import com.example.teamOfSuperheroes.model.Hero;
+import com.example.teamOfSuperheroes.model.HeroRequest;
 import com.example.teamOfSuperheroes.repository.HeroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -44,16 +45,15 @@ public class HeroService {
     }
 
     public Hero getHerosByName(String name) {
-        if (name == null) {
+        if (StringUtils.isBlank(name)) {
             return null;
         }
         for (Hero hero : heroRepository.getHeros()) {
-            if (name.equalsIgnoreCase(hero.getName())) {
+            if (StringUtils.equalsIgnoreCase(name, hero.getName())) {
                 return hero;
             }
         }
         return null;
-
     }
 
     public Hero addNewHero(Hero hero) {
@@ -67,6 +67,7 @@ public class HeroService {
         if (currentHero != null) {
             currentHero.setLevel(heroUpdateData.getLevel());
             currentHero.setPower(heroUpdateData.getPower());
+            herosFromMap.put(uuid, currentHero);
             return currentHero;
         }
         return null;
@@ -141,11 +142,14 @@ public class HeroService {
     }
 
     public List<Hero> searchHeroes(String power) {
+        if (StringUtils.isBlank(power)) {
+            throw new IllegalArgumentException("power is blank");
+        }
         List<Hero> searchHeroes = heroRepository.getHeros();
         List<Hero> havingPower = new ArrayList<>();
         if (searchHeroes != null) {
             for (Hero hero : searchHeroes) {
-                if (hero.getPower().contains(power.toLowerCase(Locale.ROOT))) {
+                if (hero.getPower().contains(power.trim().toLowerCase(Locale.ROOT))) {
                     havingPower.add(hero);
                     return havingPower;
                 }
@@ -178,11 +182,12 @@ public class HeroService {
         return average;
     }
 
-    public List<Hero> bulkHeroes(List<Hero> hero) {
+    public List<Hero> bulkHeroes(List<HeroRequest> requests) {
         List<Hero> newHeroes = new ArrayList<>();
-        newHeroes.addAll(hero);
-        for (Hero hero1 : newHeroes) {
-            HeroRepository.addHeroToBothStructures(hero1);
+        for (HeroRequest request : requests) {
+            Hero hero = new Hero(request);
+            newHeroes.add(hero);
+            HeroRepository.addHeroToBothStructures(hero);
         }
         return newHeroes;
     }
@@ -198,15 +203,18 @@ public class HeroService {
     }
 
     public Hero reNameHero(UUID id, String newName) {
+        if (StringUtils.isBlank(newName)) {
+            throw new IllegalArgumentException("Name cannot be blank");
+        }
         Map<UUID, Hero> heroesFromMap = heroRepository.getHerosFromMap();
         Hero currentHero = heroesFromMap.get(id);
-        if (currentHero != null) {
-            currentHero.setName(newName);
-            heroesFromMap.put(id, currentHero);
-            return currentHero;
+        if (currentHero == null) {
+            throw new IllegalArgumentException("Hero not found with ID: " + id) {
+            };
         }
-        return null;
-
+        currentHero.setName(newName);
+        heroesFromMap.put(id, currentHero);
+        return currentHero;
     }
 
     public List<UUID> getHeroesIds() {

@@ -1,6 +1,8 @@
 package com.example.teamOfSuperheroes.repository;
+
 import com.example.teamOfSuperheroes.model.Hero;
 import org.springframework.stereotype.Repository;
+
 import java.util.*;
 
 @Repository
@@ -16,6 +18,9 @@ public class HeroRepository {
     }
 
     public static void addHeroToBothStructures(Hero hero) {
+        if (heroMapDb.containsKey(hero.getId())) {
+            throw new IllegalArgumentException("Hero with ID " + hero.getId() + " already exists");
+        }
         heroListDb.add(hero);
         heroMapDb.put(hero.getId(), hero);
     }
