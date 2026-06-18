@@ -79,9 +79,9 @@ public class HeroService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hero Not Found");
         }
         toggleHero.setIsActive(!toggleHero.getIsActive());
-        System.out.println("MAP value:  " + heroRepository.getHerosFromMap().get(id).getIsActive());
-        System.out.println("LIST value: " + heroRepository.getHeros().stream().filter(h -> h.getId().equals(id))
-                .findFirst().get().getIsActive());
+//        System.out.println("MAP value:  " + heroRepository.getHerosFromMap().get(id).getIsActive());
+//        System.out.println("LIST value: " + heroRepository.getHeros().stream().filter(h -> h.getId().equals(id))
+//                .findFirst().get().getIsActive());
         return toggleHero;
     }
 
@@ -149,13 +149,12 @@ public class HeroService {
         List<Hero> havingPower = new ArrayList<>();
         if (searchHeroes != null) {
             for (Hero hero : searchHeroes) {
-                if (hero.getPower().contains(power.trim().toLowerCase(Locale.ROOT))) {
+                if (hero.getPower()!=null && hero.getPower().toLowerCase(Locale.ROOT).contains(power.trim().toLowerCase(Locale.ROOT))) {
                     havingPower.add(hero);
-                    return havingPower;
                 }
             }
         }
-        return null;
+        return havingPower;
     }
 
     public List<Hero> getLevelRangeHeroes(int min, int max) {

@@ -7,8 +7,8 @@ import java.util.*;
 
 @Repository
 public class HeroRepository {
-    static List<Hero> heroListDb = new ArrayList<>();        // ordered squad roster
-    static Map<UUID, Hero> heroMapDb = new HashMap<>();
+    public static List<Hero> heroListDb = new ArrayList<>();        // ordered squad roster
+    public static Map<UUID, Hero> heroMapDb = new HashMap<>();
 
     static {
         addHeroToBothStructures(new Hero("Iron Man", "Energy blasts", 85, true));
