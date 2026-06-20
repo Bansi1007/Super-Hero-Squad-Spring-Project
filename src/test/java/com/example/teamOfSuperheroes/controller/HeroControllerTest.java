@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,6 +77,7 @@ public class HeroControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
 
     }
+
     @Test
     void shouldReturnActiveHeroes() throws Exception {
         when(heroService.isActiveHeros()).thenReturn(List.of(activeHero));
@@ -85,6 +85,7 @@ public class HeroControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Batman"));
     }
+
     @Test
     void shouldReturnInactiveHeroes() throws Exception {
         when(heroService.isInActiveHeros()).thenReturn(List.of(inactiveHero));
@@ -92,6 +93,7 @@ public class HeroControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Superman"));
     }
+
     @Test
     void shouldReturnHeroById() throws Exception {
         UUID uuid = activeHero.getId();
@@ -100,6 +102,7 @@ public class HeroControllerTest {
                 .andExpect(status().isFound())
                 .andExpect(jsonPath("$.name").value("Batman"));
     }
+
     @Test
     void shouldReturnNotFoundWhenHeroNotFound() throws Exception {
         when(heroService.getHerosByID(UUID.randomUUID())).thenReturn(null);
@@ -116,11 +119,41 @@ public class HeroControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(name));
     }
+
     @Test
     void shouldReturnNotFoundWhenHeroNameNotFoundByName() throws Exception {
         when(heroService.getHerosByName("")).thenReturn(null);
         mockMvc.perform(get("/heroes/by-name/" + " "))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldAddHero() throws Exception {
+        Hero activeHero = new Hero();
+        when(heroService.addNewHero(activeHero)).thenReturn(activeHero);
+        mockMvc.perform(post("/heroes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(activeHero)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void updateHero() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        Hero activeHero = new Hero();
+        activeHero.setId(id);
+        activeHero.setName("Batman");
+        activeHero.setLevel(50);
+        activeHero.setPower("strength");
+        when(heroService.updateHero(id, activeHero)).thenReturn(activeHero);
+        mockMvc.perform(put("/heroes/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(activeHero)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Batman"))
+                .andExpect(jsonPath("$.level").value(50))
+                .andExpect(jsonPath("$.power").value("strength"));
     }
 
 

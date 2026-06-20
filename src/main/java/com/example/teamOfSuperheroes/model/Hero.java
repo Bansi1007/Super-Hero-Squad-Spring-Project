@@ -2,14 +2,14 @@ package com.example.teamOfSuperheroes.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
-
-
+@Document(collection = "Hero")
 public class Hero {
     UUID id;          // generated automatically, e.g. UUID.randomUUID()
     String name;         // e.g. "Iron Man"

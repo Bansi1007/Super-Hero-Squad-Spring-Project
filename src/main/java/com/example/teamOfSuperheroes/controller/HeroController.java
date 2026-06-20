@@ -61,8 +61,9 @@ public class HeroController {
     }
 
     @PostMapping("/heroes")
-    public ResponseEntity<Hero> addNewHero(@RequestBody Hero hero) {
-        Hero addNewHero = heroService.addNewHero(hero);
+    public ResponseEntity<Hero> addNewHero(@RequestBody HeroRequest heroRequest) {
+        Hero hero = new Hero(heroRequest);
+        Hero addNewHero = heroService.addNewHeroToMongo(hero);
         return new ResponseEntity<>(addNewHero, HttpStatus.CREATED);
     }
 

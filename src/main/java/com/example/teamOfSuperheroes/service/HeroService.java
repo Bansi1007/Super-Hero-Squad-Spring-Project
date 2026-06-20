@@ -2,6 +2,7 @@ package com.example.teamOfSuperheroes.service;
 
 import com.example.teamOfSuperheroes.model.Hero;
 import com.example.teamOfSuperheroes.model.HeroRequest;
+import com.example.teamOfSuperheroes.repository.HeroRepo;
 import com.example.teamOfSuperheroes.repository.HeroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,8 @@ public class HeroService {
 
     @Autowired
     HeroRepository heroRepository;
+    @Autowired
+    HeroRepo heroRepo;
 
     public List<Hero> getHeroes() {
         return heroRepository.getHeros();
@@ -56,9 +59,16 @@ public class HeroService {
         return null;
     }
 
+    /* local static Db */
     public Hero addNewHero(Hero hero) {
         HeroRepository.addHeroToBothStructures(hero);
         return hero;
+    }
+
+    /* local mongo Db */
+    public Hero addNewHeroToMongo(Hero hero) {
+        return heroRepo.save(hero);
+
     }
 
     public Hero updateHero(UUID uuid, Hero heroUpdateData) {
